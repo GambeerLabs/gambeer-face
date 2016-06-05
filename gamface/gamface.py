@@ -3,6 +3,7 @@ import os
 
 from PyQt4 import QtCore, QtGui, uic
 
+from gamidle.gamidle import Gambidleware
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -23,6 +24,9 @@ class MyWidget(QtGui.QMainWindow):
     def __init__(self):
         super(MyWidget, self).__init__()        
         
+        #instanciando midle
+        self.midle = Gambidleware('/dev/ttyACM0', 115200)
+
         #timer para controle de medicao de tempo 
         self.timerTime = QtCore.QTimer(self)
         self.count = QtCore.QTime()
@@ -31,7 +35,7 @@ class MyWidget(QtGui.QMainWindow):
         self.timerTemperature = QtCore.QTimer(self)
         self.contador = 0
         
-        uic.loadUi('layout.ui', self)
+        uic.loadUi('gamface/layout.ui', self)
                 
         QtCore.QObject.connect(self.buttonStart, QtCore.SIGNAL(_fromUtf8("clicked()")), self.startCount)
         QtCore.QObject.connect(self.buttonStop, QtCore.SIGNAL(_fromUtf8("clicked()")), self.stopCount)
@@ -61,9 +65,11 @@ class MyWidget(QtGui.QMainWindow):
         
     def onEngine(self):
         print "liga motor"
+        self.midle.on_engine()
         
     def offEngine(self):
         print "desliga motor"
+        self.midle.off_engine()
         
     def updateTime(self): 
         if (self.count.hour() == 0 and self.count.minute() == 0 and self.count.second() == 0) :
@@ -75,8 +81,8 @@ class MyWidget(QtGui.QMainWindow):
         self.printDisplayLCD()
     
     def updateTemperature(self):
-        print("medindo tempratura ", self.contador)
-        self.contador += 1
+        temperature = self.midle.read_temperature()
+        self.lcdNumberTemp.display(temperature)
     
     def printDisplayLCD(self):        
         h = self.count.hour()
